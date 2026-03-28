@@ -1,0 +1,29 @@
+[package]
+name = "freespace"
+version = "0.1.0"
+edition = "2021"
+description = "macOS disk inspection and cleanup utility"
+authors = []
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+walkdir = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "1.1"
+thiserror = "2.0"
+anyhow = "1.0"
+dirs = "6.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+trash = "5.2"
+comfy-table = "7.2"
+indicatif = "0.18"
+owo-colors = "4.3"
+sysinfo = "0.38"
+rayon = "1.11"
+bytesize = "2.3"
+
+[dev-dependencies]
+tempfile = "3.27"
+assert_cmd = "2.0"
