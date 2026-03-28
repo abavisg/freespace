@@ -12,7 +12,7 @@ Freespace is built in strict safety order: foundation and scaffolding first, the
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - CLI skeleton, protected-path scaffolding, config system, error handling, --json wiring
+- [x] **Phase 1: Foundation** - CLI skeleton, protected-path scaffolding, config system, error handling, --json wiring (completed 2026-03-28)
 - [ ] **Phase 2: Volume Summary** - `freespace summary` showing mounted volumes with total/used/available space
 - [ ] **Phase 3: Core Scan Engine** - Streaming scan with hardlink dedup, physical-size accounting, TCC tolerance
 - [ ] **Phase 4: Classification and Category Commands** - 14-category classifier, categories/hidden/caches subcommands
@@ -122,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/2 | In Progress|  |
+| 1. Foundation | 1/2 | Complete    | 2026-03-28 |
 | 2. Volume Summary | 0/TBD | Not started | - |
 | 3. Core Scan Engine | 0/TBD | Not started | - |
 | 4. Classification and Category Commands | 0/TBD | Not started | - |
