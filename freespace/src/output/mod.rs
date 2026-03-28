@@ -35,4 +35,14 @@ mod tests {
     fn from_flag_table() {
         assert!(matches!(OutputFormat::from_flag(false), OutputFormat::Table));
     }
+
+    #[test]
+    fn write_json_serializes_struct() {
+        // Test that write_json accepts a serde-serializable value without panicking.
+        // We can't capture stdout in a unit test easily, so verify it returns Ok.
+        #[derive(serde::Serialize)]
+        struct TestValue { status: &'static str }
+        let result = write_json(&TestValue { status: "test" });
+        assert!(result.is_ok(), "write_json must succeed for a valid serializable value");
+    }
 }
