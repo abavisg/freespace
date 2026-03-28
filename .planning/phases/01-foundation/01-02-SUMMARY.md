@@ -121,3 +121,17 @@ None - no external service configuration required.
 ---
 *Phase: 01-foundation*
 *Completed: 2026-03-28*
+
+## Self-Check: PASSED
+
+- freespace/src/config/mod.rs: FOUND
+- freespace/src/platform/macos.rs: FOUND
+- freespace/src/cli.rs: FOUND
+- freespace/src/output/mod.rs: FOUND
+- freespace/src/commands/clean.rs: FOUND
+- freespace/src/commands/doctor.rs: FOUND
+- .planning/phases/01-foundation/01-02-SUMMARY.md: FOUND
+- Commit 145a1a9 (Task 1): FOUND
+- Commit 2da6e75 (Task 2): FOUND
+- Commit eceb1f6 (Task 3): FOUND
+- Commit 2aae221 (metadata): FOUND
