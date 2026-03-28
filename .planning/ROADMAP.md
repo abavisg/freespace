@@ -33,7 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Protected paths (/System, /usr, /bin, /sbin, /private) are resolved via canonicalize() and stored as constants at startup
   4. `~/.config/Freespace/config.toml` is read on startup; missing file is handled gracefully without crash
   5. All error output goes to stderr; stdout is reserved for structured output only
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create project scaffold: cargo new, Cargo.toml with all deps, all source file stubs (compile-clean)
+- [ ] 01-02-PLAN.md — Implement real logic: config loader, platform::macos protected paths, cli --json global flag, output module, comprehensive test suite
 
 ### Phase 2: Volume Summary
 **Goal**: Users can see all mounted volumes with their disk usage at a glance
@@ -118,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/2 | Planned | - |
 | 2. Volume Summary | 0/TBD | Not started | - |
 | 3. Core Scan Engine | 0/TBD | Not started | - |
 | 4. Classification and Category Commands | 0/TBD | Not started | - |
