@@ -1,5 +1,5 @@
 {
-  "mode": "interactive",
+  "mode": "yolo",
   "granularity": "fine",
   "parallelization": true,
   "commit_docs": true,
@@ -9,7 +9,7 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "auto_advance": false,
+    "auto_advance": true,
     "push_after_phase": true
   }
 }
