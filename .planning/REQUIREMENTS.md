@@ -7,12 +7,12 @@
 
 ### Foundation
 
-- [ ] **FOUND-01**: CLI skeleton with all subcommands routed via clap derive API (summary, scan, largest, categories, hidden, caches, clean preview, clean apply, config, doctor)
-- [ ] **FOUND-02**: Platform module (`platform::macos`) isolates all macOS-specific behavior behind `#[cfg(target_os = "macos")]`
-- [ ] **FOUND-03**: Protected-path constants (/System, /usr, /bin, /sbin, /private) resolved via `canonicalize()` to prevent symlink bypass
-- [ ] **FOUND-04**: Config system reads `~/.config/Freespace/config.toml` with `[scan] exclude` and `[cleanup] safe_categories` support
-- [ ] **FOUND-05**: Error handling uses thiserror for domain errors and anyhow in command handlers; all logs/errors go to stderr only
-- [ ] **FOUND-06**: `--json` flag wired globally — all commands support it; JSON output is clean stdout only
+- [x] **FOUND-01**: CLI skeleton with all subcommands routed via clap derive API (summary, scan, largest, categories, hidden, caches, clean preview, clean apply, config, doctor)
+- [x] **FOUND-02**: Platform module (`platform::macos`) isolates all macOS-specific behavior behind `#[cfg(target_os = "macos")]`
+- [x] **FOUND-03**: Protected-path constants (/System, /usr, /bin, /sbin, /private) resolved via `canonicalize()` to prevent symlink bypass
+- [x] **FOUND-04**: Config system reads `~/.config/Freespace/config.toml` with `[scan] exclude` and `[cleanup] safe_categories` support
+- [x] **FOUND-05**: Error handling uses thiserror for domain errors and anyhow in command handlers; all logs/errors go to stderr only
+- [x] **FOUND-06**: `--json` flag wired globally — all commands support it; JSON output is clean stdout only
 
 ### Inspection — Volume Summary
 
@@ -102,12 +102,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| FOUND-03 | Phase 1 | Pending |
-| FOUND-04 | Phase 1 | Pending |
-| FOUND-05 | Phase 1 | Pending |
-| FOUND-06 | Phase 1 | Pending |
+| FOUND-01 | Phase 1 | Complete |
+| FOUND-02 | Phase 1 | Complete |
+| FOUND-03 | Phase 1 | Complete |
+| FOUND-04 | Phase 1 | Complete |
+| FOUND-05 | Phase 1 | Complete |
+| FOUND-06 | Phase 1 | Complete |
 | SUMM-01 | Phase 2 | Pending |
 | SUMM-02 | Phase 2 | Pending |
 | SCAN-01 | Phase 3 | Pending |
