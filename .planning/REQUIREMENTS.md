@@ -115,15 +115,15 @@
 | SCAN-03 | Phase 3 | Pending |
 | SCAN-04 | Phase 3 | Pending |
 | SCAN-05 | Phase 3 | Pending |
-| SCAN-06 | Phase 3 | Pending |
 | CAT-01 | Phase 4 | Pending |
 | CAT-02 | Phase 4 | Pending |
 | CAT-03 | Phase 4 | Pending |
 | HIDD-01 | Phase 4 | Pending |
 | HIDD-02 | Phase 4 | Pending |
-| CACH-01 | Phase 5 | Pending |
-| CACH-02 | Phase 5 | Pending |
-| CACH-03 | Phase 5 | Pending |
+| CACH-01 | Phase 4 | Pending |
+| CACH-02 | Phase 4 | Pending |
+| CACH-03 | Phase 4 | Pending |
+| SCAN-06 | Phase 5 | Pending |
 | PREV-01 | Phase 6 | Pending |
 | PREV-02 | Phase 6 | Pending |
 | PREV-03 | Phase 6 | Pending |
@@ -142,4 +142,4 @@
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 after roadmap creation — SCAN-06 moved to Phase 5; CACH-01/02/03 moved to Phase 4*
