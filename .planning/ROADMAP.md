@@ -46,7 +46,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `freespace summary` prints a table listing every mounted volume with mount point, total bytes, used bytes, and available bytes in human-readable form
   2. `freespace summary --json` produces clean JSON on stdout with the same fields, logs on stderr only
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Implement VolumeInfo + list_volumes() in platform::macos, summary command dispatch, table and JSON output, integration tests
 
 ### Phase 3: Core Scan Engine
 **Goal**: Users can scan any path and get accurate, deduplicated, physically-sized results — and the scan never crashes on permission errors or broken symlinks
@@ -123,7 +126,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 1/2 | Complete    | 2026-03-28 |
-| 2. Volume Summary | 0/TBD | Not started | - |
+| 2. Volume Summary | 0/1 | Not started | - |
 | 3. Core Scan Engine | 0/TBD | Not started | - |
 | 4. Classification and Category Commands | 0/TBD | Not started | - |
 | 5. Analysis Layer and Largest Files | 0/TBD | Not started | - |
