@@ -126,3 +126,73 @@ mod tests {
         assert_eq!(fallback, PathBuf::from("/fallback"));
     }
 }
+
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct VolumeInfo {
+    pub mount_point: String,
+    pub total_bytes: u64,
+    pub used_bytes: u64,
+    pub available_bytes: u64,
+}
+
+#[cfg(target_os = "macos")]
+pub fn list_volumes() -> Vec<VolumeInfo> {
+    use sysinfo::Disks;
+    let disks = Disks::new_with_refreshed_list();
+    disks
+        .list()
+        .iter()
+        .map(|disk| {
+            let total = disk.total_space();
+            let available = disk.available_space();
+            VolumeInfo {
+                mount_point: disk.mount_point().to_string_lossy().into_owned(),
+                total_bytes: total,
+                used_bytes: total.saturating_sub(available),
+                available_bytes: available,
+            }
+        })
+        .collect()
+}
+
+#[cfg(test)]
+#[cfg(target_os = "macos")]
+mod volume_tests {
+    use super::*;
+
+    #[test]
+    fn list_volumes_returns_nonempty() {
+        let volumes = list_volumes();
+        assert!(!volumes.is_empty(), "must return at least one volume on macOS");
+    }
+
+    #[test]
+    fn used_bytes_derived_correctly() {
+        let volumes = list_volumes();
+        for v in &volumes {
+            assert_eq!(
+                v.used_bytes,
+                v.total_bytes.saturating_sub(v.available_bytes),
+                "used_bytes must equal total - available for {}",
+                v.mount_point
+            );
+        }
+    }
+
+    #[test]
+    fn volume_info_serializes_to_json() {
+        let v = VolumeInfo {
+            mount_point: "/".to_string(),
+            total_bytes: 1_000_000,
+            used_bytes: 400_000,
+            available_bytes: 600_000,
+        };
+        let json = serde_json::to_string(&v).expect("VolumeInfo must serialize");
+        assert!(json.contains("mount_point"));
+        assert!(json.contains("total_bytes"));
+        assert!(json.contains("used_bytes"));
+        assert!(json.contains("available_bytes"));
+    }
+}
