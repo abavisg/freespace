@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation-01-02-PLAN.md
-last_updated: "2026-03-28T16:50:43.890Z"
+stopped_at: Completed 02-volume-summary-02-01-PLAN.md
+last_updated: "2026-03-29T19:30:21.240Z"
 last_activity: 2026-03-28 — Roadmap created (8 phases, 32 requirements mapped)
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 50
 ---
 
@@ -53,6 +53,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-foundation P01 | 3 | 3 tasks | 18 files |
 | Phase 01-foundation P01 | 3 | 3 tasks | 18 files |
 | Phase 01-foundation P02 | 9min | 3 tasks | 6 files |
+| Phase 02-volume-summary P01 | 90min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Stub handlers use eprintln! not todo!() — binary runs without panicking on unimplemented subcommands
 - [Phase 01-foundation]: Config path uses home_dir/.config/Freespace/config.toml not dirs::config_dir() (macOS config_dir returns ~/Library/Application Support)
 - [Phase 01-foundation]: All command handlers accept (config: &Config, json: bool) — json routing is caller responsibility; stdout clean when --json not set
+- [Phase 02-volume-summary]: VolumeInfo struct unconditionally public, only list_volumes() carries cfg(target_os=macos) guard
+- [Phase 02-volume-summary]: Integration tests use RUST_LOG=off to guarantee empty stderr for --json mode
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T16:45:35.702Z
-Stopped at: Completed 01-foundation-01-02-PLAN.md
+Last session: 2026-03-29T19:30:21.238Z
+Stopped at: Completed 02-volume-summary-02-01-PLAN.md
 Resume file: None

@@ -16,8 +16,8 @@
 
 ### Inspection — Volume Summary
 
-- [ ] **SUMM-01**: `freespace summary` lists all mounted volumes with mount point, total bytes, used bytes, and available bytes
-- [ ] **SUMM-02**: Summary output is human-readable table by default and clean JSON with `--json`
+- [x] **SUMM-01**: `freespace summary` lists all mounted volumes with mount point, total bytes, used bytes, and available bytes
+- [x] **SUMM-02**: Summary output is human-readable table by default and clean JSON with `--json`
 
 ### Inspection — Scan
 
@@ -108,8 +108,8 @@
 | FOUND-04 | Phase 1 | Complete |
 | FOUND-05 | Phase 1 | Complete |
 | FOUND-06 | Phase 1 | Complete |
-| SUMM-01 | Phase 2 | Pending |
-| SUMM-02 | Phase 2 | Pending |
+| SUMM-01 | Phase 2 | Complete |
+| SUMM-02 | Phase 2 | Complete |
 | SCAN-01 | Phase 3 | Pending |
 | SCAN-02 | Phase 3 | Pending |
 | SCAN-03 | Phase 3 | Pending |
