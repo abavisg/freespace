@@ -1,6 +1,8 @@
+mod analyze;
 mod cli;
 mod commands;
 mod config;
+mod fs_scan;
 mod output;
 mod platform;
 
