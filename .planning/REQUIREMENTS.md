@@ -30,9 +30,9 @@
 
 ### Inspection — Categories
 
-- [ ] **CAT-01**: `freespace categories <path>` groups disk usage into all 14 categories: video, audio, images, documents, archives, applications, developer, caches, mail, containers, cloud-sync, hidden, system-related, unknown
-- [ ] **CAT-02**: Classification priority order: path rules → known macOS dirs (~/Library/Caches, ~/Library/Mail, ~/.ollama, etc.) → extension mapping → unknown fallback
-- [ ] **CAT-03**: Each category entry shows total bytes and file count
+- [x] **CAT-01**: `freespace categories <path>` groups disk usage into all 14 categories: video, audio, images, documents, archives, applications, developer, caches, mail, containers, cloud-sync, hidden, system-related, unknown
+- [x] **CAT-02**: Classification priority order: path rules → known macOS dirs (~/Library/Caches, ~/Library/Mail, ~/.ollama, etc.) → extension mapping → unknown fallback
+- [x] **CAT-03**: Each category entry shows total bytes and file count
 
 ### Inspection — Hidden
 
@@ -115,9 +115,9 @@
 | SCAN-03 | Phase 3 | Complete |
 | SCAN-04 | Phase 3 | Complete |
 | SCAN-05 | Phase 3 | Complete |
-| CAT-01 | Phase 4 | Pending |
-| CAT-02 | Phase 4 | Pending |
-| CAT-03 | Phase 4 | Pending |
+| CAT-01 | Phase 4 | Complete |
+| CAT-02 | Phase 4 | Complete |
+| CAT-03 | Phase 4 | Complete |
 | HIDD-01 | Phase 4 | Pending |
 | HIDD-02 | Phase 4 | Pending |
 | CACH-01 | Phase 4 | Pending |

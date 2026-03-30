@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 03-core-scan-engine-03-01-PLAN.md
-last_updated: "2026-03-30T09:28:25.244Z"
-last_activity: 2026-03-28 — Roadmap created (8 phases, 32 requirements mapped)
+status: executing
+stopped_at: Completed 04-classification-and-category-commands-01-PLAN.md
+last_updated: "2026-03-30T13:06:33.262Z"
+last_activity: 2026-03-30 -- Phase 04 execution started
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
   percent: 50
 ---
 
@@ -21,20 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A power user can go from zero knowledge to safe, informed disk cleanup in a single session — with no surprises and no accidental deletions.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 04 — Classification and Category Commands
 
 ## Current Position
 
-Phase: 1 of 8 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created (8 phases, 32 requirements mapped)
+Phase: 04 (Classification and Category Commands) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 04
+Last activity: 2026-03-30 -- Phase 04 execution started
 
 Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: -
@@ -46,6 +47,7 @@ Progress: [█████░░░░░] 50%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: -
 - Trend: -
 
@@ -55,6 +57,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-foundation P02 | 9min | 3 tasks | 6 files |
 | Phase 02-volume-summary P01 | 90min | 2 tasks | 3 files |
 | Phase 03-core-scan-engine P01 | 25min | 2 tasks | 5 files |
+| Phase 04-classification-and-category-commands P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -76,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 02-volume-summary]: Integration tests use RUST_LOG=off to guarantee empty stderr for --json mode
 - [Phase 03-core-scan-engine]: config.scan.exclude is Vec<String> not Vec<PathBuf> — starts_with(ex) string comparison used for path prefix exclusion
 - [Phase 03-core-scan-engine]: ScanResult.largest_files typed as Vec<FileEntry> from the start — Phase 5 populates via BinaryHeap without breaking type change
+- [Phase 04-classification-and-category-commands]: is_hidden checks file_name dot prefix AND path_has_hidden_component to catch files inside hidden dirs
+- [Phase 04-classification-and-category-commands]: Category::all() pre-initializes HashMap so all 14 categories always appear in output even with zero counts
 
 ### Pending Todos
 
@@ -88,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T08:55:41.038Z
-Stopped at: Completed 03-core-scan-engine-03-01-PLAN.md
+Last session: 2026-03-30T13:06:33.260Z
+Stopped at: Completed 04-classification-and-category-commands-01-PLAN.md
 Resume file: None

@@ -132,7 +132,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation | 1/2 | Complete    | 2026-03-28 |
 | 2. Volume Summary | 1/1 | Complete    | 2026-03-29 |
 | 3. Core Scan Engine | 1/1 | Complete    | 2026-03-30 |
-| 4. Classification and Category Commands | 0/2 | Not started | - |
+| 4. Classification and Category Commands | 1/2 | In Progress|  |
 | 5. Analysis Layer and Largest Files | 0/TBD | Not started | - |
 | 6. Cleanup Preview | 0/TBD | Not started | - |
 | 7. Cleanup Apply | 0/TBD | Not started | - |
