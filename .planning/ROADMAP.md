@@ -73,7 +73,11 @@ Plans:
   3. `freespace hidden <path>` lists dotfiles and hidden directories with individual sizes and a total hidden size for the path
   4. `freespace caches` discovers cache directories across standard macOS locations with path, size, and safety classification (safe/caution/dangerous/blocked) per entry
   5. Reclaimable total across safe-classified caches is shown in `freespace caches` output
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Build classify module (Category enum, SafetyClass, tiered classify_path) and categories command with table/JSON output
+- [ ] 04-02-PLAN.md — Implement hidden command (dotfile listing with sizes) and caches command (known-dir enumeration with safety classification)
 
 ### Phase 5: Analysis Layer and Largest Files
 **Goal**: Users can identify the largest files and directories at any path using an efficient, memory-bounded aggregation engine
@@ -128,7 +132,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Foundation | 1/2 | Complete    | 2026-03-28 |
 | 2. Volume Summary | 1/1 | Complete    | 2026-03-29 |
 | 3. Core Scan Engine | 1/1 | Complete    | 2026-03-30 |
-| 4. Classification and Category Commands | 0/TBD | Not started | - |
+| 4. Classification and Category Commands | 0/2 | Not started | - |
 | 5. Analysis Layer and Largest Files | 0/TBD | Not started | - |
 | 6. Cleanup Preview | 0/TBD | Not started | - |
 | 7. Cleanup Apply | 0/TBD | Not started | - |
