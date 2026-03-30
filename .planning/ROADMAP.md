@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - CLI skeleton, protected-path scaffolding, config system, error handling, --json wiring (completed 2026-03-28)
 - [x] **Phase 2: Volume Summary** - `freespace summary` showing mounted volumes with total/used/available space (completed 2026-03-29)
 - [x] **Phase 3: Core Scan Engine** - Streaming scan with hardlink dedup, physical-size accounting, TCC tolerance (completed 2026-03-30)
-- [ ] **Phase 4: Classification and Category Commands** - 14-category classifier, categories/hidden/caches subcommands
+- [x] **Phase 4: Classification and Category Commands** - 14-category classifier, categories/hidden/caches subcommands (completed 2026-03-30)
 - [ ] **Phase 5: Analysis Layer and Largest Files** - `freespace largest` powered by fold+BinaryHeap aggregation
 - [ ] **Phase 6: Cleanup Preview** - Read-only preview gate; no deletions until preview is verified
 - [ ] **Phase 7: Cleanup Apply** - Trash-first deletion, --force guard, protected-path enforcement, audit log
@@ -76,8 +76,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Build classify module (Category enum, SafetyClass, tiered classify_path) and categories command with table/JSON output
-- [ ] 04-02-PLAN.md — Implement hidden command (dotfile listing with sizes) and caches command (known-dir enumeration with safety classification)
+- [x] 04-01-PLAN.md — Build classify module (Category enum, SafetyClass, tiered classify_path) and categories command with table/JSON output
+- [x] 04-02-PLAN.md — Implement hidden command (dotfile listing with sizes) and caches command (known-dir enumeration with safety classification)
 
 ### Phase 5: Analysis Layer and Largest Files
 **Goal**: Users can identify the largest files and directories at any path using an efficient, memory-bounded aggregation engine
