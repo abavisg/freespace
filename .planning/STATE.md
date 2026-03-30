@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-volume-summary-02-01-PLAN.md
-last_updated: "2026-03-29T20:34:33.702Z"
+stopped_at: Completed 03-core-scan-engine-03-01-PLAN.md
+last_updated: "2026-03-30T08:55:41.042Z"
 last_activity: 2026-03-28 — Roadmap created (8 phases, 32 requirements mapped)
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
   percent: 50
 ---
 
@@ -54,6 +54,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-foundation P01 | 3 | 3 tasks | 18 files |
 | Phase 01-foundation P02 | 9min | 3 tasks | 6 files |
 | Phase 02-volume-summary P01 | 90min | 2 tasks | 3 files |
+| Phase 03-core-scan-engine P01 | 25min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: All command handlers accept (config: &Config, json: bool) — json routing is caller responsibility; stdout clean when --json not set
 - [Phase 02-volume-summary]: VolumeInfo struct unconditionally public, only list_volumes() carries cfg(target_os=macos) guard
 - [Phase 02-volume-summary]: Integration tests use RUST_LOG=off to guarantee empty stderr for --json mode
+- [Phase 03-core-scan-engine]: config.scan.exclude is Vec<String> not Vec<PathBuf> — starts_with(ex) string comparison used for path prefix exclusion
+- [Phase 03-core-scan-engine]: ScanResult.largest_files typed as Vec<FileEntry> from the start — Phase 5 populates via BinaryHeap without breaking type change
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T19:30:21.238Z
-Stopped at: Completed 02-volume-summary-02-01-PLAN.md
+Last session: 2026-03-30T08:55:41.038Z
+Stopped at: Completed 03-core-scan-engine-03-01-PLAN.md
 Resume file: None

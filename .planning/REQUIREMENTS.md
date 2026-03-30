@@ -21,11 +21,11 @@
 
 ### Inspection — Scan
 
-- [ ] **SCAN-01**: `freespace scan <path>` reports total size, file count, directory count, largest files (top-N), and largest directories (top-N)
-- [ ] **SCAN-02**: Scanner uses streaming walkdir traversal — no loading full directory trees into memory
-- [ ] **SCAN-03**: Scanner deduplicates hardlinks via `(dev, ino)` tracking to prevent double-counting
-- [ ] **SCAN-04**: Scanner uses physical size (`st_blocks * 512`) for sparse files, not logical `metadata().len()`
-- [ ] **SCAN-05**: Scanner handles permission errors, broken symlinks, and files deleted during scan without crashing — skipped paths are counted and surfaced
+- [x] **SCAN-01**: `freespace scan <path>` reports total size, file count, directory count, largest files (top-N), and largest directories (top-N)
+- [x] **SCAN-02**: Scanner uses streaming walkdir traversal — no loading full directory trees into memory
+- [x] **SCAN-03**: Scanner deduplicates hardlinks via `(dev, ino)` tracking to prevent double-counting
+- [x] **SCAN-04**: Scanner uses physical size (`st_blocks * 512`) for sparse files, not logical `metadata().len()`
+- [x] **SCAN-05**: Scanner handles permission errors, broken symlinks, and files deleted during scan without crashing — skipped paths are counted and surfaced
 - [ ] **SCAN-06**: `freespace largest <path>` reports top-N largest files and directories at a path
 
 ### Inspection — Categories
@@ -110,11 +110,11 @@
 | FOUND-06 | Phase 1 | Complete |
 | SUMM-01 | Phase 2 | Complete |
 | SUMM-02 | Phase 2 | Complete |
-| SCAN-01 | Phase 3 | Pending |
-| SCAN-02 | Phase 3 | Pending |
-| SCAN-03 | Phase 3 | Pending |
-| SCAN-04 | Phase 3 | Pending |
-| SCAN-05 | Phase 3 | Pending |
+| SCAN-01 | Phase 3 | Complete |
+| SCAN-02 | Phase 3 | Complete |
+| SCAN-03 | Phase 3 | Complete |
+| SCAN-04 | Phase 3 | Complete |
+| SCAN-05 | Phase 3 | Complete |
 | CAT-01 | Phase 4 | Pending |
 | CAT-02 | Phase 4 | Pending |
 | CAT-03 | Phase 4 | Pending |
