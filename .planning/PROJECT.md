@@ -12,15 +12,13 @@ A power user can go from zero knowledge to safe, informed disk cleanup in a sing
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] User can view mounted volumes with total, used, and available space — Validated in Phase 2: Volume Summary
+- [x] User can scan any path and see total size, file count, directory count — Validated in Phase 3: Core Scan Engine
+- [x] User can see disk usage grouped by category (video, audio, images, documents, archives, applications, developer, caches, mail, containers, cloud-sync, hidden, system-related, unknown) — Validated in Phase 4: Classification and Category Commands
+- [x] User can inspect hidden files and directories under any path — Validated in Phase 4: Classification and Category Commands
+- [x] User can view cache directories with reclaimable size and safety classification — Validated in Phase 4: Classification and Category Commands
 
 ### Active
-
-- [ ] User can view mounted volumes with total, used, and available space
-- [ ] User can scan any path and see total size, file count, directory count, largest files, and largest directories
-- [ ] User can see disk usage grouped by category (video, audio, images, documents, archives, applications, developer, caches, mail, containers, cloud-sync, hidden, system-related, unknown)
-- [ ] User can inspect hidden files and directories under any path
-- [ ] User can view cache directories with reclaimable size and safety classification
 - [ ] User can preview what a cleanup would affect before anything is deleted
 - [ ] User can apply cleanup with Trash as default, permanent delete requiring --force, and protected paths blocked
 - [ ] All major commands support --json output (clean JSON on stdout, logs on stderr)
