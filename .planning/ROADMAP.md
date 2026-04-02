@@ -87,7 +87,10 @@ Plans:
   1. `freespace largest <path>` reports the top-N largest files and directories in a human-readable table
   2. `freespace largest <path> --json` produces clean JSON output with the same data
   3. The aggregation uses a bounded BinaryHeap (not a full sort) so memory usage stays bounded regardless of directory size
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 05-01-PLAN.md — BinaryHeap top-N aggregation in scan engine, directory size rollup, largest command with table/JSON output, integration tests
 
 ### Phase 6: Cleanup Preview
 **Goal**: Users can see exactly what a cleanup would affect — including safety classification and total reclaimable space — before any file is touched
@@ -133,7 +136,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Volume Summary | 1/1 | Complete    | 2026-03-29 |
 | 3. Core Scan Engine | 1/1 | Complete    | 2026-03-30 |
 | 4. Classification and Category Commands | 1/2 | In Progress|  |
-| 5. Analysis Layer and Largest Files | 0/TBD | Not started | - |
+| 5. Analysis Layer and Largest Files | 0/1 | Not started | - |
 | 6. Cleanup Preview | 0/TBD | Not started | - |
 | 7. Cleanup Apply | 0/TBD | Not started | - |
 | 8. Doctor and Polish | 0/TBD | Not started | - |
