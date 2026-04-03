@@ -1,9 +1,12 @@
 use crate::analyze::ScanResult;
 use serde::Serialize;
-use std::collections::HashSet;
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::os::unix::fs::MetadataExt;
 use std::path::PathBuf;
 use walkdir::WalkDir;
+
+const DEFAULT_TOP_N: usize = 20;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct FileEntry {
@@ -18,6 +21,8 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
         ..Default::default()
     };
     let mut seen_inodes: HashSet<(u64, u64)> = HashSet::new();
+    let mut file_heap: BinaryHeap<Reverse<(u64, PathBuf)>> = BinaryHeap::new();
+    let mut dir_sizes: HashMap<PathBuf, u64> = HashMap::new();
 
     for entry_result in WalkDir::new(root).follow_links(false) {
         match entry_result {
@@ -52,7 +57,27 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
                         let physical = metadata.blocks() * 512;
                         result.total_bytes += physical;
                         result.file_count += 1;
-                        // Phase 5: update largest_files BinaryHeap here
+
+                        // Top-N largest files via bounded min-heap
+                        if file_heap.len() < DEFAULT_TOP_N {
+                            file_heap.push(Reverse((physical, entry.path().to_path_buf())));
+                        } else if file_heap.peek().map_or(false, |Reverse((min, _))| physical > *min) {
+                            file_heap.pop();
+                            file_heap.push(Reverse((physical, entry.path().to_path_buf())));
+                        }
+
+                        // Directory size rollup: add this file's size to every ancestor up to root
+                        let mut ancestor = entry.path().parent();
+                        while let Some(dir) = ancestor {
+                            if !dir.starts_with(root) && dir != root {
+                                break;
+                            }
+                            *dir_sizes.entry(dir.to_path_buf()).or_insert(0) += physical;
+                            if dir == root {
+                                break;
+                            }
+                            ancestor = dir.parent();
+                        }
                     }
                     // else: hardlink already counted — skip
                 }
@@ -81,6 +106,32 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
             }
         }
     }
+
+    // Convert file heap to sorted Vec<FileEntry> (largest first).
+    // into_sorted_vec() on BinaryHeap<Reverse<T>> returns in ascending Reverse order,
+    // which is descending by original size — exactly what we want.
+    result.largest_files = file_heap
+        .into_sorted_vec()
+        .into_iter()
+        .map(|Reverse((size, path))| FileEntry { path, size, is_dir: false })
+        .collect();
+
+    // Select top-N directories from dir_sizes using same bounded heap pattern
+    let mut dir_heap: BinaryHeap<Reverse<(u64, PathBuf)>> = BinaryHeap::new();
+    for (path, size) in dir_sizes {
+        if dir_heap.len() < DEFAULT_TOP_N {
+            dir_heap.push(Reverse((size, path)));
+        } else if dir_heap.peek().map_or(false, |Reverse((min, _))| size > *min) {
+            dir_heap.pop();
+            dir_heap.push(Reverse((size, path)));
+        }
+    }
+    result.largest_dirs = dir_heap
+        .into_sorted_vec()
+        .into_iter()
+        .map(|Reverse((size, path))| FileEntry { path, size, is_dir: true })
+        .collect();
+
     result
 }
 
@@ -173,5 +224,96 @@ mod tests {
         let result = scan_path(dir.path(), &default_config());
         // The scan must complete without panic
         let _ = result;
+    }
+
+    #[test]
+    fn bounded_heap_does_not_exceed_top_n() {
+        let dir = TempDir::new().unwrap();
+        // Create 30 files (more than DEFAULT_TOP_N=20)
+        for i in 0..30 {
+            let data = vec![0u8; (i + 1) * 512]; // varying sizes, multiples of 512
+            fs::write(dir.path().join(format!("file_{:02}.dat", i)), &data).unwrap();
+        }
+        let result = scan_path(dir.path(), &default_config());
+        assert!(
+            result.largest_files.len() <= 20,
+            "largest_files must be bounded to DEFAULT_TOP_N (20), got {}",
+            result.largest_files.len()
+        );
+        // The largest file (30 * 512 = 15360 bytes written) should be present
+        assert!(
+            result.largest_files.iter().any(|f| f.path.file_name().unwrap() == "file_29.dat"),
+            "largest file must appear in largest_files"
+        );
+    }
+
+    #[test]
+    fn dir_size_hardlink_dedup() {
+        let dir = TempDir::new().unwrap();
+        let sub = dir.path().join("subdir");
+        fs::create_dir(&sub).unwrap();
+        let original = sub.join("original.dat");
+        fs::write(&original, vec![0u8; 4096]).unwrap();
+        let link = sub.join("hardlink.dat");
+        fs::hard_link(&original, &link).unwrap();
+
+        let result = scan_path(dir.path(), &default_config());
+
+        // Find the subdir in largest_dirs
+        let subdir_entry = result
+            .largest_dirs
+            .iter()
+            .find(|e| e.path == sub)
+            .expect("subdir must appear in largest_dirs");
+
+        // Size must be ONE copy, not two
+        let meta = fs::metadata(&original).unwrap();
+        let single_physical = meta.blocks() * 512;
+        assert_eq!(
+            subdir_entry.size, single_physical,
+            "dir size must not double-count hardlinks: got {} expected {}",
+            subdir_entry.size, single_physical
+        );
+    }
+
+    #[test]
+    fn largest_files_sorted_descending() {
+        let dir = TempDir::new().unwrap();
+        fs::write(dir.path().join("small.dat"), vec![0u8; 512]).unwrap();
+        fs::write(dir.path().join("medium.dat"), vec![0u8; 4096]).unwrap();
+        fs::write(dir.path().join("large.dat"), vec![0u8; 8192]).unwrap();
+
+        let result = scan_path(dir.path(), &default_config());
+        assert!(result.largest_files.len() >= 3);
+        for w in result.largest_files.windows(2) {
+            assert!(
+                w[0].size >= w[1].size,
+                "largest_files must be sorted descending: {} < {}",
+                w[0].size, w[1].size
+            );
+        }
+    }
+
+    #[test]
+    fn largest_dirs_includes_subdirs() {
+        let dir = TempDir::new().unwrap();
+        let a = dir.path().join("a");
+        let b = a.join("b");
+        fs::create_dir_all(&b).unwrap();
+        fs::write(b.join("file.dat"), vec![0u8; 4096]).unwrap();
+
+        let result = scan_path(dir.path(), &default_config());
+
+        let dir_paths: Vec<_> = result.largest_dirs.iter().map(|e| &e.path).collect();
+        assert!(
+            dir_paths.contains(&&a),
+            "largest_dirs must contain ancestor dir 'a', got {:?}",
+            dir_paths
+        );
+        assert!(
+            dir_paths.contains(&&b),
+            "largest_dirs must contain leaf dir 'b', got {:?}",
+            dir_paths
+        );
     }
 }

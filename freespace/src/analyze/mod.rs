@@ -9,4 +9,5 @@ pub struct ScanResult {
     pub dir_count: u64,
     pub skipped_count: u64,
     pub largest_files: Vec<crate::fs_scan::FileEntry>,
+    pub largest_dirs: Vec<crate::fs_scan::FileEntry>,
 }
