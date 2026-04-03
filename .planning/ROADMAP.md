@@ -101,7 +101,10 @@ Plans:
   2. Total reclaimable space is shown across all preview candidates
   3. Running `freespace clean preview` makes no changes to disk — no files are moved, modified, or deleted
   4. `freespace clean preview --json` produces clean JSON output of preview candidates on stdout
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — Implement run_preview() in clean.rs (SafetyClass Ord, PreviewResult, known cache dir enumeration, table/JSON output) and integration tests
 
 ### Phase 7: Cleanup Apply
 **Goal**: Users can safely reclaim disk space — with Trash as the default, permanent deletion behind --force, and protected paths immutably blocked under all circumstances
@@ -137,6 +140,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Core Scan Engine | 1/1 | Complete    | 2026-03-30 |
 | 4. Classification and Category Commands | 1/2 | In Progress|  |
 | 5. Analysis Layer and Largest Files | 0/1 | Not started | - |
-| 6. Cleanup Preview | 0/TBD | Not started | - |
+| 6. Cleanup Preview | 0/1 | Not started | - |
 | 7. Cleanup Apply | 0/TBD | Not started | - |
 | 8. Doctor and Polish | 0/TBD | Not started | - |
