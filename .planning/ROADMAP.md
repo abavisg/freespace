@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Volume Summary** - `freespace summary` showing mounted volumes with total/used/available space (completed 2026-03-29)
 - [x] **Phase 3: Core Scan Engine** - Streaming scan with hardlink dedup, physical-size accounting, TCC tolerance (completed 2026-03-30)
 - [x] **Phase 4: Classification and Category Commands** - 14-category classifier, categories/hidden/caches subcommands (completed 2026-03-30)
-- [ ] **Phase 5: Analysis Layer and Largest Files** - `freespace largest` powered by fold+BinaryHeap aggregation
+- [x] **Phase 5: Analysis Layer and Largest Files** - `freespace largest` powered by fold+BinaryHeap aggregation (completed 2026-04-02)
 - [ ] **Phase 6: Cleanup Preview** - Read-only preview gate; no deletions until preview is verified
 - [ ] **Phase 7: Cleanup Apply** - Trash-first deletion, --force guard, protected-path enforcement, audit log
 - [ ] **Phase 8: Doctor and Polish** - Self-diagnostics, TCC probe, release tooling, shell completions
@@ -90,7 +90,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md — BinaryHeap top-N aggregation in scan engine, directory size rollup, largest command with table/JSON output, integration tests
+- [x] 05-01-PLAN.md — BinaryHeap top-N aggregation in scan engine, directory size rollup, largest command with table/JSON output, integration tests
 
 ### Phase 6: Cleanup Preview
 **Goal**: Users can see exactly what a cleanup would affect — including safety classification and total reclaimable space — before any file is touched
