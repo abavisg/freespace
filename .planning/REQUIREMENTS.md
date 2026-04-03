@@ -26,7 +26,7 @@
 - [x] **SCAN-03**: Scanner deduplicates hardlinks via `(dev, ino)` tracking to prevent double-counting
 - [x] **SCAN-04**: Scanner uses physical size (`st_blocks * 512`) for sparse files, not logical `metadata().len()`
 - [x] **SCAN-05**: Scanner handles permission errors, broken symlinks, and files deleted during scan without crashing — skipped paths are counted and surfaced
-- [ ] **SCAN-06**: `freespace largest <path>` reports top-N largest files and directories at a path
+- [x] **SCAN-06**: `freespace largest <path>` reports top-N largest files and directories at a path
 
 ### Inspection — Categories
 
@@ -123,7 +123,7 @@
 | CACH-01 | Phase 4 | Pending |
 | CACH-02 | Phase 4 | Pending |
 | CACH-03 | Phase 4 | Pending |
-| SCAN-06 | Phase 5 | Pending |
+| SCAN-06 | Phase 5 | Complete |
 | PREV-01 | Phase 6 | Pending |
 | PREV-02 | Phase 6 | Pending |
 | PREV-03 | Phase 6 | Pending |
