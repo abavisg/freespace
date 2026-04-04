@@ -63,7 +63,7 @@ impl std::fmt::Display for Category {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum SafetyClass {
     Safe,
@@ -453,5 +453,22 @@ mod tests {
             safety_class(Path::new("/System/Library"), home()),
             SafetyClass::Blocked
         );
+    }
+
+    // ---- SafetyClass Ord tests ----
+
+    #[test]
+    fn safety_class_ord_safe_lt_caution() {
+        assert!(SafetyClass::Safe < SafetyClass::Caution);
+    }
+
+    #[test]
+    fn safety_class_ord_caution_lt_dangerous() {
+        assert!(SafetyClass::Caution < SafetyClass::Dangerous);
+    }
+
+    #[test]
+    fn safety_class_ord_dangerous_lt_blocked() {
+        assert!(SafetyClass::Dangerous < SafetyClass::Blocked);
     }
 }
