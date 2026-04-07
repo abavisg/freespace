@@ -10,6 +10,7 @@
     "verifier": true,
     "nyquist_validation": true,
     "auto_advance": true,
-    "push_after_phase": true
+    "push_after_phase": true,
+    "_auto_chain_active": false
   }
 }

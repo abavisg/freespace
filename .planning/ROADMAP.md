@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Core Scan Engine** - Streaming scan with hardlink dedup, physical-size accounting, TCC tolerance (completed 2026-03-30)
 - [x] **Phase 4: Classification and Category Commands** - 14-category classifier, categories/hidden/caches subcommands (completed 2026-03-30)
 - [x] **Phase 5: Analysis Layer and Largest Files** - `freespace largest` powered by fold+BinaryHeap aggregation (completed 2026-04-02)
-- [ ] **Phase 6: Cleanup Preview** - Read-only preview gate; no deletions until preview is verified
+- [x] **Phase 6: Cleanup Preview** - Read-only preview gate; no deletions until preview is verified (completed 2026-04-07)
 - [ ] **Phase 7: Cleanup Apply** - Trash-first deletion, --force guard, protected-path enforcement, audit log
 - [ ] **Phase 8: Doctor and Polish** - Self-diagnostics, TCC probe, release tooling, shell completions
 
@@ -104,7 +104,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — Implement run_preview() in clean.rs (SafetyClass Ord, PreviewResult, known cache dir enumeration, table/JSON output) and integration tests
+- [x] 06-01-PLAN.md — Implement run_preview() in clean.rs (SafetyClass Ord, PreviewResult, known cache dir enumeration, table/JSON output) and integration tests (completed 2026-04-07)
 
 ### Phase 7: Cleanup Apply
 **Goal**: Users can safely reclaim disk space — with Trash as the default, permanent deletion behind --force, and protected paths immutably blocked under all circumstances
