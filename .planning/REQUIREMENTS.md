@@ -47,9 +47,9 @@
 
 ### Cleanup — Preview
 
-- [ ] **PREV-01**: `freespace clean preview` shows all files/directories that would be affected, total reclaimable space, and safety classification per item
-- [ ] **PREV-02**: Preview is read-only — no files are modified or deleted during preview
-- [ ] **PREV-03**: Preview output is human-readable table by default and clean JSON with `--json`
+- [x] **PREV-01**: `freespace clean preview` shows all files/directories that would be affected, total reclaimable space, and safety classification per item
+- [x] **PREV-02**: Preview is read-only — no files are modified or deleted during preview
+- [x] **PREV-03**: Preview output is human-readable table by default and clean JSON with `--json`
 
 ### Cleanup — Apply
 
@@ -124,9 +124,9 @@
 | CACH-02 | Phase 4 | Pending |
 | CACH-03 | Phase 4 | Pending |
 | SCAN-06 | Phase 5 | Complete |
-| PREV-01 | Phase 6 | Pending |
-| PREV-02 | Phase 6 | Pending |
-| PREV-03 | Phase 6 | Pending |
+| PREV-01 | Phase 6 | Complete |
+| PREV-02 | Phase 6 | Complete |
+| PREV-03 | Phase 6 | Complete |
 | APPLY-01 | Phase 7 | Pending |
 | APPLY-02 | Phase 7 | Pending |
 | APPLY-03 | Phase 7 | Pending |
