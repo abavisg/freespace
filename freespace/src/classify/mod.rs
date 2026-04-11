@@ -63,7 +63,7 @@ impl std::fmt::Display for Category {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum SafetyClass {
     Safe,

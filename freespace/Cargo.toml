@@ -23,6 +23,7 @@ owo-colors = "4.3"
 sysinfo = "0.38"
 rayon = "1.11"
 bytesize = "2.3"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 
 [dev-dependencies]
 tempfile = "3.27"

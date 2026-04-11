@@ -2,10 +2,11 @@ use crate::classify::{safety_class, SafetyClass};
 use crate::config::schema::Config;
 use bytesize::ByteSize;
 use comfy_table::Table;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct PreviewEntry {
     path: PathBuf,
     total_bytes: u64,
@@ -18,6 +19,60 @@ struct PreviewResult {
     candidates: Vec<PreviewEntry>,
     total_bytes: u64,
     reclaimable_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PreviewSession {
+    timestamp: u64,
+    candidates: Vec<PreviewEntry>,
+}
+
+fn state_dir() -> anyhow::Result<std::path::PathBuf> {
+    if let Ok(override_dir) = std::env::var("FREESPACE_STATE_DIR") {
+        return Ok(std::path::PathBuf::from(override_dir));
+    }
+    let home = dirs::home_dir()
+        .ok_or_else(|| anyhow::anyhow!("Cannot resolve home directory"))?;
+    Ok(home.join(".local/state/Freespace"))
+}
+
+fn write_preview_session(candidates: &[PreviewEntry]) -> anyhow::Result<()> {
+    let dir = state_dir()?;
+    std::fs::create_dir_all(&dir)?;
+    let session = PreviewSession {
+        timestamp: SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0),
+        candidates: candidates.to_vec(),
+    };
+    let tmp = dir.join("preview-session.json.tmp");
+    let final_path = dir.join("preview-session.json");
+    let json = serde_json::to_string_pretty(&session)?;
+    std::fs::write(&tmp, json)?;
+    std::fs::rename(&tmp, &final_path)?;
+    Ok(())
+}
+
+fn load_preview_session() -> anyhow::Result<PreviewSession> {
+    let path = state_dir()?.join("preview-session.json");
+    if !path.exists() {
+        anyhow::bail!("No preview session found. Run `freespace clean preview` first.");
+    }
+    let json = std::fs::read_to_string(&path)?;
+    let session: PreviewSession = serde_json::from_str(&json)?;
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let age = now.saturating_sub(session.timestamp);
+    if age > 3600 {
+        anyhow::bail!(
+            "Preview session expired ({} minutes ago). Run `freespace clean preview` again.",
+            age / 60
+        );
+    }
+    Ok(session)
 }
 
 fn known_cache_dirs(home: &Path) -> Vec<PathBuf> {
@@ -72,6 +127,10 @@ pub fn run_preview(config: &Config, json: bool) -> anyhow::Result<()> {
         reclaimable_bytes,
     };
 
+    if let Err(e) = write_preview_session(&result.candidates) {
+        tracing::warn!("Could not write preview session file: {}", e);
+    }
+
     if json {
         crate::output::write_json(&result)?;
     } else {
@@ -96,15 +155,17 @@ fn render_preview_table(result: &PreviewResult) {
     println!("Reclaimable (safe): {}", ByteSize::b(result.reclaimable_bytes));
 }
 
-pub fn run_apply(force: bool, config: &Config, json: bool) -> anyhow::Result<()> {
-    let _ = (force, config);
+pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()> {
+    let _ = force;
+    let _session = load_preview_session()?;
+    // Full pipeline implemented in Task 3.
     if json {
         crate::output::write_json(&serde_json::json!({
-            "status": "not_implemented",
+            "status": "session_ok",
             "command": "clean apply"
         }))?;
     } else {
-        eprintln!("clean apply: not yet implemented");
+        eprintln!("clean apply: session loaded; pipeline pending");
     }
     Ok(())
 }
