@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-classification-and-category-commands-01-PLAN.md
-last_updated: "2026-04-03T20:47:58.139Z"
-last_activity: 2026-04-03 -- Phase 06 execution started
+stopped_at: Completed 08-doctor-and-polish-02-PLAN.md
+last_updated: "2026-04-12T08:30:24.199Z"
+last_activity: 2026-04-12
 progress:
   total_phases: 8
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 7
+  completed_phases: 8
+  total_plans: 11
+  completed_plans: 11
   percent: 50
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A power user can go from zero knowledge to safe, informed disk cleanup in a single session — with no surprises and no accidental deletions.
-**Current focus:** Phase 06 — cleanup-preview
+**Current focus:** Phase 08 — doctor-and-polish
 
 ## Current Position
 
-Phase: 06 (cleanup-preview) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 06
-Last activity: 2026-04-03 -- Phase 06 execution started
+Phase: 08 (doctor-and-polish) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-12
 
 Progress: [█████░░░░░] 50%
 
@@ -58,6 +58,7 @@ Progress: [█████░░░░░] 50%
 | Phase 02-volume-summary P01 | 90min | 2 tasks | 3 files |
 | Phase 03-core-scan-engine P01 | 25min | 2 tasks | 5 files |
 | Phase 04-classification-and-category-commands P01 | 3min | 2 tasks | 4 files |
+| Phase 08-doctor-and-polish P02 | 10min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 03-core-scan-engine]: ScanResult.largest_files typed as Vec<FileEntry> from the start — Phase 5 populates via BinaryHeap without breaking type change
 - [Phase 04-classification-and-category-commands]: is_hidden checks file_name dot prefix AND path_has_hidden_component to catch files inside hidden dirs
 - [Phase 04-classification-and-category-commands]: Category::all() pre-initializes HashMap so all 14 categories always appear in output even with zero counts
+- [Phase 08-doctor-and-polish]: TCC probe uses Safari/History.db not NSWorkspace — avoids entitlement complexity, deterministic pass/fail/warn semantics
+- [Phase 08-doctor-and-polish]: anyhow::bail for fail exit (never std::process::exit) — preserves stdout/stderr buffer flushing
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T13:06:33.260Z
-Stopped at: Completed 04-classification-and-category-commands-01-PLAN.md
+Last session: 2026-04-12T08:30:24.196Z
+Stopped at: Completed 08-doctor-and-polish-02-PLAN.md
 Resume file: None

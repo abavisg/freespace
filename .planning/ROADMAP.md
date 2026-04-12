@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Analysis Layer and Largest Files** - `freespace largest` powered by fold+BinaryHeap aggregation (completed 2026-04-02)
 - [x] **Phase 6: Cleanup Preview** - Read-only preview gate; no deletions until preview is verified (completed 2026-04-07)
 - [ ] **Phase 7: Cleanup Apply** - Trash-first deletion, --force guard, protected-path enforcement, audit log
-- [ ] **Phase 8: Doctor and Polish** - Self-diagnostics, TCC probe, release tooling, shell completions
+- [x] **Phase 8: Doctor and Polish** - Self-diagnostics, TCC probe, release tooling, shell completions (completed 2026-04-12)
 
 ## Phase Details
 
@@ -119,14 +119,18 @@ Plans:
 **Plans**: TBD
 
 ### Phase 8: Doctor and Polish
-**Goal**: Users can diagnose permission and configuration issues with a self-check command, and the tool is ready for distribution
+**Goal**: Users can diagnose permission and configuration issues with a self-check command, and the tool ships with shell completions for zsh/bash/fish
 **Depends on**: Phase 7
 **Requirements**: DIAG-01, DIAG-02
 **Success Criteria** (what must be TRUE):
   1. `freespace doctor` reports Full Disk Access (TCC) status, protected-path verification results, and config file validity in a single pass
   2. Each issue detected by doctor includes an actionable remediation message — not just "error detected"
   3. `freespace doctor` exits with a non-zero code when any check fails, enabling scripted health checks
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Add clap_complete dep, wire Completions subcommand (cli variant + main dispatch), create RED integration test suite freespace/tests/doctor_cmd.rs covering DIAG-01, DIAG-02, and completions
+- [x] 08-02-PLAN.md — Implement freespace/src/commands/doctor.rs: DoctorCheck types, 4 checks (FDA, protected paths, config, cleanup log), comfy_table rendering, JSON output, exit-code logic — turns doctor_* tests GREEN
 
 ## Progress
 
@@ -142,4 +146,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Analysis Layer and Largest Files | 0/1 | Not started | - |
 | 6. Cleanup Preview | 0/1 | Not started | - |
 | 7. Cleanup Apply | 0/TBD | Not started | - |
-| 8. Doctor and Polish | 0/TBD | Not started | - |
+| 8. Doctor and Polish | 2/2 | Complete   | 2026-04-12 |

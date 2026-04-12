@@ -61,8 +61,8 @@
 
 ### Diagnostics
 
-- [ ] **DIAG-01**: `freespace doctor` runs self-diagnostics: TCC/Full Disk Access status, protected-path verification, config file validity
-- [ ] **DIAG-02**: Doctor reports actionable remediation for each detected issue
+- [x] **DIAG-01**: `freespace doctor` runs self-diagnostics: TCC/Full Disk Access status, protected-path verification, config file validity
+- [x] **DIAG-02**: Doctor reports actionable remediation for each detected issue
 
 ## v2 Requirements
 
@@ -132,8 +132,8 @@
 | APPLY-03 | Phase 7 | Pending |
 | APPLY-04 | Phase 7 | Pending |
 | APPLY-05 | Phase 7 | Pending |
-| DIAG-01 | Phase 8 | Pending |
-| DIAG-02 | Phase 8 | Pending |
+| DIAG-01 | Phase 8 | Complete |
+| DIAG-02 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 32 total
