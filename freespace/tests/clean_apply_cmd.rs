@@ -120,8 +120,8 @@ fn test_apply_protected_path_never_deletes() {
     let tmp = TempDir::new().unwrap();
     let state_dir = setup_state(&tmp);
 
-    // This path is under /private → must be blocked unconditionally
-    let protected_path = PathBuf::from("/private/tmp/freespace_fake_nonexistent_file_do_not_create");
+    // This path is under /private/etc → must be blocked unconditionally
+    let protected_path = PathBuf::from("/private/etc/freespace_fake_nonexistent_file_do_not_create");
     write_session(
         &state_dir,
         &[(protected_path.clone(), 1024, 1)],
@@ -172,12 +172,14 @@ fn test_apply_trashes_safe_candidates() {
     let tmp = TempDir::new().unwrap();
     let state_dir = setup_state(&tmp);
 
-    // Create a real file to trash
+    // Create a real file to trash — use path WITHOUT canonicalize so it doesn't start with /private
     let victim = tmp.path().join("victim.txt");
     fs::write(&victim, "bye").unwrap();
-    let victim_abs = victim.canonicalize().unwrap();
+    // Use the raw path (e.g. /var/folders/...) NOT canonicalized (/private/var/folders/...)
+    // so the protected-path check doesn't incorrectly block it.
+    let victim_path = victim.clone();
 
-    write_session(&state_dir, &[(victim_abs.clone(), 3, 1)], now_secs());
+    write_session(&state_dir, &[(victim_path.clone(), 3, 1)], now_secs());
 
     let output = freespace()
         .args(["clean", "apply"])
@@ -194,7 +196,7 @@ fn test_apply_trashes_safe_candidates() {
     );
 
     assert!(
-        !victim_abs.exists(),
+        !victim_path.exists(),
         "victim.txt must no longer exist at original path after trash"
     );
 
@@ -221,8 +223,9 @@ fn test_apply_force_required_for_permanent_delete() {
     let state_a = setup_state(&tmp_a);
     let victim2 = tmp_a.path().join("victim2.txt");
     fs::write(&victim2, "delete me").unwrap();
-    let victim2_abs = victim2.canonicalize().unwrap();
-    write_session(&state_a, &[(victim2_abs.clone(), 9, 1)], now_secs());
+    // Use raw path (not canonicalized) to avoid /private prefix blocking the file
+    let victim2_path = victim2.clone();
+    write_session(&state_a, &[(victim2_path.clone(), 9, 1)], now_secs());
 
     let out_a = freespace()
         .args(["clean", "apply"])
@@ -238,7 +241,7 @@ fn test_apply_force_required_for_permanent_delete() {
         String::from_utf8_lossy(&out_a.stderr)
     );
     assert!(
-        !victim2_abs.exists(),
+        !victim2_path.exists(),
         "victim2.txt should be gone after trash"
     );
     let audit_a = read_audit_lines(&state_a);
@@ -256,8 +259,9 @@ fn test_apply_force_required_for_permanent_delete() {
     let state_b = setup_state(&tmp_b);
     let victim3 = tmp_b.path().join("victim3.txt");
     fs::write(&victim3, "really delete me").unwrap();
-    let victim3_abs = victim3.canonicalize().unwrap();
-    write_session(&state_b, &[(victim3_abs.clone(), 16, 1)], now_secs());
+    // Use raw path (not canonicalized) to avoid /private prefix blocking the file
+    let victim3_path = victim3.clone();
+    write_session(&state_b, &[(victim3_path.clone(), 16, 1)], now_secs());
 
     let out_b = freespace()
         .args(["clean", "apply", "--force"])
@@ -273,7 +277,7 @@ fn test_apply_force_required_for_permanent_delete() {
         String::from_utf8_lossy(&out_b.stderr)
     );
     assert!(
-        !victim3_abs.exists(),
+        !victim3_path.exists(),
         "victim3.txt should be gone after force delete"
     );
     let audit_b = read_audit_lines(&state_b);
@@ -295,9 +299,10 @@ fn test_apply_audit_log_written() {
 
     let auditme = tmp.path().join("auditme.txt");
     fs::write(&auditme, "abc").unwrap(); // 3 bytes
-    let auditme_abs = auditme.canonicalize().unwrap();
+    // Use raw path (not canonicalized) to avoid /private prefix blocking the file
+    let auditme_path = auditme.clone();
 
-    write_session(&state_dir, &[(auditme_abs.clone(), 3, 1)], now_secs());
+    write_session(&state_dir, &[(auditme_path.clone(), 3, 1)], now_secs());
 
     let output = freespace()
         .args(["clean", "apply"])
@@ -384,15 +389,17 @@ fn test_apply_network_volume_warned_and_skipped() {
     fs::create_dir_all(&fake_net_mount).unwrap();
     let net_file = fake_net_mount.join("net_file.txt");
     fs::write(&net_file, "network file").unwrap();
-    let net_file_abs = net_file.canonicalize().unwrap();
-    let fake_net_mount_abs = fake_net_mount.canonicalize().unwrap();
+    // Use raw paths (not canonicalized) to avoid /private prefix issues.
+    // FREESPACE_FAKE_NETWORK_MOUNT must match the path prefix in the session.
+    let net_file_path = net_file.clone();
+    let fake_net_mount_path = fake_net_mount.clone();
 
-    write_session(&state_dir, &[(net_file_abs.clone(), 12, 1)], now_secs());
+    write_session(&state_dir, &[(net_file_path.clone(), 12, 1)], now_secs());
 
     let output = freespace()
         .args(["clean", "apply"])
         .env("FREESPACE_STATE_DIR", &state_dir)
-        .env("FREESPACE_FAKE_NETWORK_MOUNT", &fake_net_mount_abs)
+        .env("FREESPACE_FAKE_NETWORK_MOUNT", &fake_net_mount_path)
         .env("RUST_LOG", "off")
         .write_stdin("y\n")
         .output()
@@ -406,7 +413,7 @@ fn test_apply_network_volume_warned_and_skipped() {
 
     // File must NOT have been deleted
     assert!(
-        net_file_abs.exists(),
+        net_file_path.exists(),
         "file on network mount must not be deleted"
     );
 
@@ -442,9 +449,10 @@ fn test_apply_json_mode_bypasses_prompt() {
 
     let jsontest = tmp.path().join("jsontest.txt");
     fs::write(&jsontest, "json mode test").unwrap();
-    let jsontest_abs = jsontest.canonicalize().unwrap();
+    // Use raw path (not canonicalized) to avoid /private prefix blocking the file
+    let jsontest_path = jsontest.clone();
 
-    write_session(&state_dir, &[(jsontest_abs.clone(), 14, 1)], now_secs());
+    write_session(&state_dir, &[(jsontest_path.clone(), 14, 1)], now_secs());
 
     // Do NOT call .write_stdin() — proves no stdin blocking
     let output = freespace()
@@ -472,7 +480,7 @@ fn test_apply_json_mode_bypasses_prompt() {
 
     // File must be gone (trashed)
     assert!(
-        !jsontest_abs.exists(),
+        !jsontest_path.exists(),
         "jsontest.txt must be gone after apply --json"
     );
 

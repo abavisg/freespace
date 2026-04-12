@@ -1,6 +1,12 @@
 use std::path::PathBuf;
 
-/// Returns the five protected root paths, canonicalized at startup.
+/// Returns the protected root paths, canonicalized at startup.
+///
+/// These are the macOS system directories that must never be deleted by any
+/// cleanup operation — not even with `--force`. The list uses specific paths
+/// rather than the broad `/private` prefix to avoid blocking legitimate user
+/// temp files under `/private/var/folders` (macOS TMPDIR) and
+/// `/private/tmp` which are normal user-accessible temporary storage.
 ///
 /// Uses std::fs::canonicalize (POSIX realpath on macOS) so that symlinks
 /// such as /tmp → /private/tmp are resolved. If canonicalization fails
@@ -10,7 +16,14 @@ use std::path::PathBuf;
 /// Call once at startup (main.rs) and store the result. Do NOT call per-file.
 #[cfg(target_os = "macos")]
 pub fn protected_paths() -> Vec<PathBuf> {
-    const RAW: &[&str] = &["/System", "/usr", "/bin", "/sbin", "/private"];
+    const RAW: &[&str] = &[
+        "/System",         // macOS system files (SIP-protected)
+        "/usr",            // Unix system directories
+        "/bin",            // Essential user command binaries
+        "/sbin",           // Essential system admin binaries
+        "/private/etc",    // System configuration files
+        "/private/var/db", // System databases (launchd, mdworker, etc.)
+    ];
     RAW.iter()
         .map(|raw| {
             std::fs::canonicalize(raw).unwrap_or_else(|e| {
@@ -45,14 +58,15 @@ mod tests {
             PathBuf::from("/usr"),
             PathBuf::from("/bin"),
             PathBuf::from("/sbin"),
-            PathBuf::from("/private"),
+            PathBuf::from("/private/etc"),
+            PathBuf::from("/private/var/db"),
         ]
     }
 
     #[test]
-    fn protected_paths_returns_five() {
+    fn protected_paths_returns_six() {
         let paths = protected_paths();
-        assert_eq!(paths.len(), 5, "must return exactly 5 protected paths");
+        assert_eq!(paths.len(), 6, "must return exactly 6 protected paths");
     }
 
     #[test]
@@ -72,10 +86,30 @@ mod tests {
     }
 
     #[test]
-    fn is_protected_private_tmp() {
-        // /private is in the protected list; /private/tmp must also be blocked
+    fn is_protected_private_etc() {
+        // /private/etc is in the protected list — system config must be blocked
         assert!(is_protected(
-            std::path::Path::new("/private/tmp/foo"),
+            std::path::Path::new("/private/etc/hosts"),
+            &test_protected()
+        ));
+    }
+
+    #[test]
+    fn is_protected_private_var_db() {
+        // /private/var/db is in the protected list — system databases must be blocked
+        assert!(is_protected(
+            std::path::Path::new("/private/var/db/launchd.db/com.apple.launchd"),
+            &test_protected()
+        ));
+    }
+
+    #[test]
+    fn tmp_is_not_protected() {
+        // /tmp → /private/tmp, but /private/tmp is NOT in the protected list anymore.
+        // Users can legitimately have cleanup candidates in temp dirs.
+        // The specific protected paths under /private are /etc and /var/db.
+        assert!(!is_protected(
+            std::path::Path::new("/private/tmp/some_cache_file"),
             &test_protected()
         ));
     }
@@ -97,23 +131,14 @@ mod tests {
     }
 
     #[test]
-    fn tmp_canonicalizes_to_private_tmp() {
-        // On macOS /tmp is a symlink to /private/tmp.
-        // After canonicalize, /tmp resolves to /private/tmp.
-        // This test verifies that the canonicalize-based protected_paths()
-        // correctly catches paths under /tmp via the /private entry.
-        let canonical_tmp = std::fs::canonicalize("/tmp").unwrap_or_else(|_| PathBuf::from("/tmp"));
-        // On a real macOS system this SHOULD be /private/tmp
-        // (it may be /tmp on some CI environments — that's acceptable)
+    fn tmp_canonicalizes_correctly() {
+        // Verify no panic during canonicalize-based protected_paths() call.
         let real_protected = protected_paths();
-        // A file under /tmp (→ /private/tmp) must be protected IF canonicalization worked
-        let tmp_file = canonical_tmp.join("test_file");
-        let protected = is_protected(&tmp_file, &real_protected);
-        // If canonicalize resolved /tmp to /private/tmp, then /private/tmp/test_file starts_with /private
-        // If it did not resolve (e.g., CI without /tmp symlink), the raw /tmp path is in protected list
-        // Either way the assertion must hold: the file is protected.
-        // Note: this assertion is best-effort on non-macOS CI.
-        let _ = protected; // don't assert — just verify no panic
+        assert!(!real_protected.is_empty());
+        // /private/var/folders (macOS TMPDIR) must NOT be protected
+        let tmpdir_file = std::path::PathBuf::from("/private/var/folders/test/file.txt");
+        assert!(!is_protected(&tmpdir_file, &real_protected));
+        let _ = (); // don't assert — just verify no panic
     }
 
     #[test]

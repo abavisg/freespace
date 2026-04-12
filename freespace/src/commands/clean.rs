@@ -3,6 +3,8 @@ use crate::config::schema::Config;
 use bytesize::ByteSize;
 use comfy_table::Table;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -73,6 +75,62 @@ fn load_preview_session() -> anyhow::Result<PreviewSession> {
         );
     }
     Ok(session)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AuditEntry {
+    timestamp: String,
+    path: String,
+    size_bytes: u64,
+    action: String, // "trash" | "delete" | "skip"
+}
+
+fn utc_timestamp() -> String {
+    chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+}
+
+fn append_audit_log(state_dir: &std::path::Path, entry: &AuditEntry) -> anyhow::Result<()> {
+    use std::fs::OpenOptions;
+    std::fs::create_dir_all(state_dir)?;
+    let log_path = state_dir.join("cleanup.log");
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)?;
+    writeln!(file, "{}", serde_json::to_string(entry)?)?;
+    Ok(())
+}
+
+fn log_action(state_dir: &std::path::Path, path: &std::path::Path, size_bytes: u64, action: &str) {
+    let entry = AuditEntry {
+        timestamp: utc_timestamp(),
+        path: path.display().to_string(),
+        size_bytes,
+        action: action.to_string(),
+    };
+    if let Err(e) = append_audit_log(state_dir, &entry) {
+        tracing::warn!("audit log write failed: {}", e);
+    }
+}
+
+fn network_mount_points() -> HashSet<std::path::PathBuf> {
+    use sysinfo::Disks;
+    const NETWORK_FS_TYPES: &[&str] = &["smbfs", "afpfs", "nfs", "webdav", "ftpfs", "ftp", "nfs4"];
+    let disks = Disks::new_with_refreshed_list();
+    let mut mounts: HashSet<std::path::PathBuf> = disks
+        .list()
+        .iter()
+        .filter(|d| {
+            let fs = d.file_system().to_string_lossy().to_ascii_lowercase();
+            NETWORK_FS_TYPES.iter().any(|n| fs == *n)
+        })
+        .map(|d| d.mount_point().to_owned())
+        .collect();
+    // Test hook: treat FREESPACE_FAKE_NETWORK_MOUNT as a network mount for integration tests.
+    if let Ok(fake) = std::env::var("FREESPACE_FAKE_NETWORK_MOUNT") {
+        mounts.insert(std::path::PathBuf::from(fake));
+    }
+    mounts
 }
 
 fn known_cache_dirs(home: &Path) -> Vec<PathBuf> {
@@ -156,16 +214,121 @@ fn render_preview_table(result: &PreviewResult) {
 }
 
 pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()> {
-    let _ = force;
-    let _session = load_preview_session()?;
-    // Full pipeline implemented in Task 3.
+    let session = load_preview_session()?;
+    let protected = crate::platform::macos::protected_paths();
+    let network_mounts = network_mount_points();
+    let count = session.candidates.len();
+    let total_bytes: u64 = session.candidates.iter().map(|c| c.total_bytes).sum();
+
+    // Confirmation gate (skipped in --json mode).
+    if !json {
+        print!(
+            "{} items, {} — Proceed? [y/N] ",
+            count,
+            bytesize::ByteSize::b(total_bytes)
+        );
+        std::io::stdout().flush()?;
+        let mut line = String::new();
+        std::io::stdin().lock().read_line(&mut line)?;
+        if !line.trim().eq_ignore_ascii_case("y") {
+            eprintln!("Aborted.");
+            return Ok(());
+        }
+    }
+
+    let sdir = state_dir()?;
+    std::fs::create_dir_all(&sdir)?;
+
+    let mut trashed = 0usize;
+    let mut deleted = 0usize;
+    let mut skipped = 0usize;
+
+    for entry in &session.candidates {
+        let canonical = std::fs::canonicalize(&entry.path)
+            .unwrap_or_else(|_| entry.path.clone());
+
+        // Protected check (runs even with --force).
+        if crate::platform::macos::is_protected(&canonical, &protected) {
+            tracing::warn!("blocked: protected path — {}", entry.path.display());
+            eprintln!("blocked: protected path — {}", entry.path.display());
+            log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+            skipped += 1;
+            continue;
+        }
+
+        // Network volume check.
+        if network_mounts.iter().any(|mp| {
+            canonical.starts_with(mp) || entry.path.starts_with(mp)
+        }) {
+            eprintln!("skipped: network volume — {}", entry.path.display());
+            log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+            skipped += 1;
+            continue;
+        }
+
+        // Existence check (file may have been moved/deleted since preview).
+        if !entry.path.exists() {
+            tracing::warn!("missing: {}", entry.path.display());
+            log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+            skipped += 1;
+            continue;
+        }
+
+        if force {
+            let res = if entry.path.is_dir() {
+                std::fs::remove_dir_all(&entry.path)
+            } else {
+                std::fs::remove_file(&entry.path)
+            };
+            match res {
+                Ok(()) => {
+                    log_action(&sdir, &entry.path, entry.total_bytes, "delete");
+                    deleted += 1;
+                }
+                Err(e) => {
+                    tracing::warn!("delete failed for {}: {}", entry.path.display(), e);
+                    log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+                    skipped += 1;
+                }
+            }
+        } else {
+            // Use NsFileManager method: faster, no osascript serialization,
+            // and does not require Finder permissions. Trade-off: "Put Back"
+            // may not appear in Finder context menu on some macOS versions.
+            use trash::macos::{DeleteMethod, TrashContextExtMacos};
+            let mut ctx = trash::TrashContext::default();
+            ctx.set_delete_method(DeleteMethod::NsFileManager);
+            match ctx.delete(&entry.path) {
+                Ok(()) => {
+                    log_action(&sdir, &entry.path, entry.total_bytes, "trash");
+                    trashed += 1;
+                }
+                Err(e) => {
+                    tracing::warn!("trash failed for {}: {}", entry.path.display(), e);
+                    log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+                    skipped += 1;
+                }
+            }
+        }
+    }
+
     if json {
         crate::output::write_json(&serde_json::json!({
-            "status": "session_ok",
-            "command": "clean apply"
+            "status": "ok",
+            "items": count,
+            "total_bytes": total_bytes,
+            "trashed": trashed,
+            "deleted": deleted,
+            "skipped": skipped,
         }))?;
     } else {
-        eprintln!("clean apply: session loaded; pipeline pending");
+        println!(
+            "Done. trashed={} deleted={} skipped={} total={}",
+            trashed,
+            deleted,
+            skipped,
+            bytesize::ByteSize::b(total_bytes)
+        );
     }
     Ok(())
 }

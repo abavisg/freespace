@@ -97,7 +97,8 @@ pub fn classify_path(path: &Path, home: &Path) -> Category {
         || path.starts_with("/usr")
         || path.starts_with("/bin")
         || path.starts_with("/sbin")
-        || path.starts_with("/private")
+        || path.starts_with("/private/etc")
+        || path.starts_with("/private/var/db")
     {
         return Category::SystemRelated;
     }
@@ -195,7 +196,8 @@ pub fn safety_class(path: &Path, home: &Path) -> SafetyClass {
         || path.starts_with("/usr")
         || path.starts_with("/bin")
         || path.starts_with("/sbin")
-        || path.starts_with("/private")
+        || path.starts_with("/private/etc")
+        || path.starts_with("/private/var/db")
     {
         return SafetyClass::Blocked;
     }
