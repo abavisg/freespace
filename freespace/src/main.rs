@@ -30,6 +30,13 @@ fn main() -> anyhow::Result<()> {
         },
         Commands::Config => commands::config_cmd::run(&config, cli.json),
         Commands::Doctor => commands::doctor::run(&config, cli.json),
+        Commands::Completions { shell } => {
+            use clap::CommandFactory;
+            use clap_complete::generate;
+            let mut cmd = cli::Cli::command();
+            generate(shell, &mut cmd, "freespace", &mut std::io::stdout());
+            Ok(())
+        }
     }
 }
 

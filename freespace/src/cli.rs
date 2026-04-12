@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 
 #[derive(Parser)]
 #[command(
@@ -47,6 +48,11 @@ pub enum Commands {
     Config,
     /// Run self-diagnostics
     Doctor,
+    /// Generate shell completion scripts
+    Completions {
+        /// Shell to generate completions for (bash, zsh, fish, elvish, powershell)
+        shell: Shell,
+    },
 }
 
 #[derive(Subcommand)]
@@ -134,5 +140,37 @@ mod tests {
         let cli = Cli::try_parse_from(["freespace", "summary"])
             .expect("summary without --json must parse");
         assert!(!cli.json, "--json default must be false");
+    }
+
+    #[test]
+    fn completions_subcommand_parses_zsh() {
+        let cli = Cli::try_parse_from(["freespace", "completions", "zsh"])
+            .expect("completions zsh must parse");
+        match cli.command {
+            Commands::Completions { shell } => {
+                assert_eq!(
+                    format!("{shell}"),
+                    "zsh",
+                    "shell must be Zsh"
+                );
+            }
+            _ => panic!("expected Commands::Completions"),
+        }
+    }
+
+    #[test]
+    fn completions_subcommand_parses_bash() {
+        let cli = Cli::try_parse_from(["freespace", "completions", "bash"])
+            .expect("completions bash must parse");
+        match cli.command {
+            Commands::Completions { shell } => {
+                assert_eq!(
+                    format!("{shell}"),
+                    "bash",
+                    "shell must be Bash"
+                );
+            }
+            _ => panic!("expected Commands::Completions"),
+        }
     }
 }
