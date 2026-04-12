@@ -18,12 +18,15 @@ A power user can go from zero knowledge to safe, informed disk cleanup in a sing
 - [x] User can inspect hidden files and directories under any path — Validated in Phase 4: Classification and Category Commands
 - [x] User can view cache directories with reclaimable size and safety classification — Validated in Phase 4: Classification and Category Commands
 
+- [x] User can preview what a cleanup would affect before anything is deleted — Validated in Phase 6: Cleanup Preview
+- [x] User can apply cleanup with Trash as default, permanent delete requiring --force, and protected paths blocked — Validated in Phase 7: Cleanup Apply
+- [x] All major commands support --json output (clean JSON on stdout, logs on stderr) — Validated across Phases 2–8
+- [x] User can configure exclusions and safe categories via ~/.config/Freespace/config.toml — Validated in Phase 1: Foundation
+- [x] Tool handles permission errors, broken symlinks, and mid-scan deletions without crashing — Validated in Phase 3: Core Scan Engine
+- [x] User can run self-diagnostics to check FDA/TCC, protected paths, and config file status — Validated in Phase 8: Doctor and Polish
+- [x] User can generate shell completion scripts (zsh, bash, fish) — Validated in Phase 8: Doctor and Polish
+
 ### Active
-- [ ] User can preview what a cleanup would affect before anything is deleted
-- [ ] User can apply cleanup with Trash as default, permanent delete requiring --force, and protected paths blocked
-- [ ] All major commands support --json output (clean JSON on stdout, logs on stderr)
-- [ ] User can configure exclusions and safe categories via ~/.config/Freespace/config.toml
-- [ ] Tool handles permission errors, broken symlinks, and mid-scan deletions without crashing
 
 ### Out of Scope
 
@@ -62,5 +65,10 @@ A power user can go from zero knowledge to safe, informed disk cleanup in a sing
 | macOS-only v1 | Avoids platform abstraction complexity; platform module isolates this for future expansion | — Pending |
 | Build order enforced (no cleanup before scan) | Safety-critical: scan and classification must be reliable before cleanup is usable | — Pending |
 
+## Current State
+
+Phase 8 complete — Freespace v1 is done. All 8 phases executed, all requirements validated.
+The full workflow (Inspect → Classify → Preview → Clean) plus doctor diagnostics and shell completions are shipped.
+
 ---
-*Last updated: 2026-03-28 after initialization*
+*Last updated: 2026-04-12 — Phase 8 complete, Freespace v1 ready*
