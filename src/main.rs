@@ -17,12 +17,13 @@ fn main() -> anyhow::Result<()> {
     let config = config::load_config().context("Failed to load configuration")?;
     #[cfg(target_os = "macos")]
     let _protected = platform::macos::protected_paths();
+    let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/"));
     match cli.command {
         Commands::Summary => commands::summary::run(&config, cli.json),
-        Commands::Scan { path } => commands::scan::run(&path, &config, cli.json),
-        Commands::Largest { path } => commands::largest::run(&path, &config, cli.json),
-        Commands::Categories { path } => commands::categories::run(&path, &config, cli.json),
-        Commands::Hidden { path } => commands::hidden::run(&path, &config, cli.json),
+        Commands::Scan { path } => commands::scan::run(&path.unwrap_or_else(|| home.clone()), &config, cli.json),
+        Commands::Largest { path } => commands::largest::run(&path.unwrap_or_else(|| home.clone()), &config, cli.json),
+        Commands::Categories { path } => commands::categories::run(&path.unwrap_or_else(|| home.clone()), &config, cli.json),
+        Commands::Hidden { path } => commands::hidden::run(&path.unwrap_or_else(|| home.clone()), &config, cli.json),
         Commands::Caches => commands::caches::run(&config, cli.json),
         Commands::Clean { command } => match command {
             CleanCommands::Preview => commands::clean::run_preview(&config, cli.json),

@@ -24,6 +24,10 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
     let mut file_heap: BinaryHeap<Reverse<(u64, PathBuf)>> = BinaryHeap::new();
     let mut dir_sizes: HashMap<PathBuf, u64> = HashMap::new();
 
+    // Get the device ID of the root so we can skip entries on other filesystems
+    // (network mounts, /dev, /System/Volumes, etc.)
+    let root_dev: Option<u64> = std::fs::metadata(root).ok().map(|m| m.dev());
+
     for entry_result in WalkDir::new(root).follow_links(false) {
         match entry_result {
             Ok(entry) => {
@@ -43,11 +47,18 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
                 let metadata = match entry.metadata() {
                     Ok(m) => m,
                     Err(e) => {
-                        tracing::warn!("metadata error at {:?}: {}", entry.path(), e);
+                        tracing::debug!("metadata error at {:?}: {}", entry.path(), e);
                         result.skipped_count += 1;
                         continue;
                     }
                 };
+                // Skip entries on a different filesystem (network mounts, /dev, etc.)
+                if let Some(rdev) = root_dev {
+                    if metadata.dev() != rdev {
+                        result.skipped_count += 1;
+                        continue;
+                    }
+                }
                 if metadata.is_dir() {
                     result.dir_count += 1;
                 } else if metadata.is_file() {
@@ -89,7 +100,7 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
                 } else if let Some(io_err) = e.io_error() {
                     match io_err.kind() {
                         std::io::ErrorKind::PermissionDenied => {
-                            tracing::warn!("permission denied: {:?}", e.path());
+                            tracing::debug!("permission denied: {:?}", e.path());
                         }
                         std::io::ErrorKind::NotFound => {
                             // Normal: file deleted between readdir and stat

@@ -21,21 +21,21 @@ pub struct Cli {
 pub enum Commands {
     /// Show disk usage summary for all mounted volumes
     Summary,
-    /// Scan a path and report size breakdown
+    /// Scan a path and report size breakdown (defaults to home directory)
     Scan {
-        path: std::path::PathBuf,
+        path: Option<std::path::PathBuf>,
     },
-    /// Show largest files and directories at a path
+    /// Show largest files and directories at a path (defaults to home directory)
     Largest {
-        path: std::path::PathBuf,
+        path: Option<std::path::PathBuf>,
     },
-    /// Group disk usage into semantic categories at a path
+    /// Group disk usage into semantic categories at a path (defaults to home directory)
     Categories {
-        path: std::path::PathBuf,
+        path: Option<std::path::PathBuf>,
     },
-    /// List hidden files and directories at a path
+    /// List hidden files and directories at a path (defaults to home directory)
     Hidden {
-        path: std::path::PathBuf,
+        path: Option<std::path::PathBuf>,
     },
     /// Discover cache directories across standard macOS locations
     Caches,
@@ -116,6 +116,16 @@ mod tests {
             .expect("scan /tmp must parse");
         match cli.command {
             Commands::Scan { path } => assert_eq!(path.to_str().unwrap(), "/tmp"),
+            _ => panic!("expected Commands::Scan"),
+        }
+    }
+
+    #[test]
+    fn scan_defaults_to_none_when_no_path_given() {
+        let cli = Cli::try_parse_from(["freespace", "scan"])
+            .expect("scan with no path must parse");
+        match cli.command {
+            Commands::Scan { path } => assert!(path.is_none(), "path must be None when omitted"),
             _ => panic!("expected Commands::Scan"),
         }
     }
