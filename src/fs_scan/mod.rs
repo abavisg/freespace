@@ -107,7 +107,7 @@ pub fn scan_path(root: &std::path::Path, config: &crate::config::schema::Config)
                             tracing::debug!("not found (deleted mid-scan): {:?}", e.path());
                         }
                         _ => {
-                            tracing::warn!("io error at {:?}: {}", e.path(), io_err);
+                            tracing::debug!("io error at {:?}: {}", e.path(), io_err);
                         }
                     }
                 } else {
