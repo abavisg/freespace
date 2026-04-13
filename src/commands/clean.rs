@@ -148,28 +148,52 @@ fn known_cache_dirs(home: &Path) -> Vec<PathBuf> {
 pub fn run_preview(config: &Config, json: bool) -> anyhow::Result<()> {
     let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot resolve home directory"))?;
 
-    let dirs_list = known_cache_dirs(&home);
-
     let mut candidates: Vec<PreviewEntry> = Vec::new();
-    for dir in &dirs_list {
+
+    // Section 1: known cache/log dirs
+    for dir in &known_cache_dirs(&home) {
         if !dir.exists() {
             continue;
         }
         let scan = crate::fs_scan::scan_path(dir, config);
-        let safety = safety_class(dir, &home);
+        if scan.total_bytes == 0 {
+            continue;
+        }
         candidates.push(PreviewEntry {
             path: dir.clone(),
             total_bytes: scan.total_bytes,
             file_count: scan.file_count,
-            safety,
+            safety: safety_class(dir, &home),
         });
     }
 
-    // Sort: primary key safety ascending (Safe first), secondary key total_bytes descending
+    // Section 2: top large directories from a home scan (excluding already-listed paths)
+    let already: std::collections::HashSet<PathBuf> = candidates.iter().map(|c| c.path.clone()).collect();
+    let home_scan = crate::fs_scan::scan_path(&home, config);
+    for dir_entry in &home_scan.largest_dirs {
+        // Skip if already in candidates or if it's an ancestor/descendant of one
+        if already.iter().any(|p| dir_entry.path.starts_with(p) || p.starts_with(&dir_entry.path)) {
+            continue;
+        }
+        // Skip home itself
+        if dir_entry.path == home {
+            continue;
+        }
+        if dir_entry.size < 50 * 1024 * 1024 {
+            // Only show dirs >= 50 MB
+            continue;
+        }
+        candidates.push(PreviewEntry {
+            path: dir_entry.path.clone(),
+            total_bytes: dir_entry.size,
+            file_count: 0, // not tracked per-dir in scan
+            safety: safety_class(&dir_entry.path, &home),
+        });
+    }
+
+    // Sort: Safe first, then by size descending
     candidates.sort_by(|a, b| {
-        a.safety
-            .cmp(&b.safety)
-            .then(b.total_bytes.cmp(&a.total_bytes))
+        a.safety.cmp(&b.safety).then(b.total_bytes.cmp(&a.total_bytes))
     });
 
     let total_bytes: u64 = candidates.iter().map(|e| e.total_bytes).sum();
@@ -179,11 +203,7 @@ pub fn run_preview(config: &Config, json: bool) -> anyhow::Result<()> {
         .map(|e| e.total_bytes)
         .sum();
 
-    let result = PreviewResult {
-        candidates,
-        total_bytes,
-        reclaimable_bytes,
-    };
+    let result = PreviewResult { candidates, total_bytes, reclaimable_bytes };
 
     if let Err(e) = write_preview_session(&result.candidates) {
         tracing::warn!("Could not write preview session file: {}", e);
@@ -199,42 +219,112 @@ pub fn run_preview(config: &Config, json: bool) -> anyhow::Result<()> {
 
 fn render_preview_table(result: &PreviewResult) {
     let mut table = Table::new();
-    table.set_header(["Path", "Size", "Files", "Safety"]);
-    for entry in &result.candidates {
+    table.set_header(["#", "Path", "Size", "Files", "Safety"]);
+    for (i, entry) in result.candidates.iter().enumerate() {
+        let files = if entry.file_count > 0 {
+            entry.file_count.to_string()
+        } else {
+            "—".to_string()
+        };
         table.add_row([
+            (i + 1).to_string(),
             entry.path.to_string_lossy().to_string(),
             ByteSize::b(entry.total_bytes).to_string(),
-            entry.file_count.to_string(),
+            files,
             entry.safety.to_string(),
         ]);
     }
     println!("{table}");
-    println!("Total: {}", ByteSize::b(result.total_bytes));
+    println!();
+    println!("Total shown:        {}", ByteSize::b(result.total_bytes));
     println!("Reclaimable (safe): {}", ByteSize::b(result.reclaimable_bytes));
+    println!();
+    println!("Run `freespace clean apply` to select which items to delete.");
 }
 
 pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()> {
     let session = load_preview_session()?;
     let protected = crate::platform::macos::protected_paths();
     let network_mounts = network_mount_points();
-    let count = session.candidates.len();
-    let total_bytes: u64 = session.candidates.iter().map(|c| c.total_bytes).sum();
 
-    // Confirmation gate (skipped in --json mode).
-    if !json {
-        print!(
-            "{} items, {} — Proceed? [y/N] ",
-            count,
-            bytesize::ByteSize::b(total_bytes)
-        );
+    // In JSON mode: delete all safe candidates without interaction.
+    // In interactive mode: show numbered list and let user pick.
+    let selected: Vec<&PreviewEntry> = if json {
+        session.candidates.iter()
+            .filter(|c| c.safety == SafetyClass::Safe)
+            .collect()
+    } else {
+        // Show numbered list
+        println!("Select items to delete (from last preview):");
+        println!();
+        let mut table = Table::new();
+        table.set_header(["#", "Path", "Size", "Safety"]);
+        for (i, c) in session.candidates.iter().enumerate() {
+            table.add_row([
+                (i + 1).to_string(),
+                c.path.to_string_lossy().to_string(),
+                bytesize::ByteSize::b(c.total_bytes).to_string(),
+                c.safety.to_string(),
+            ]);
+        }
+        println!("{table}");
+        println!();
+        println!("Enter numbers to delete (e.g. 1 3 5), \"safe\" for all safe items, or \"all\" for everything:");
+        print!("> ");
         std::io::stdout().flush()?;
+
         let mut line = String::new();
         std::io::stdin().lock().read_line(&mut line)?;
-        if !line.trim().eq_ignore_ascii_case("y") {
+        let input = line.trim();
+
+        if input.is_empty() || input.eq_ignore_ascii_case("none") {
+            eprintln!("Nothing selected. Aborted.");
+            return Ok(());
+        }
+
+        let chosen: Vec<&PreviewEntry> = if input.eq_ignore_ascii_case("all") {
+            session.candidates.iter().collect()
+        } else if input.eq_ignore_ascii_case("safe") {
+            session.candidates.iter().filter(|c| c.safety == SafetyClass::Safe).collect()
+        } else {
+            let mut chosen = Vec::new();
+            for token in input.split_whitespace() {
+                match token.parse::<usize>() {
+                    Ok(n) if n >= 1 && n <= session.candidates.len() => {
+                        chosen.push(&session.candidates[n - 1]);
+                    }
+                    _ => {
+                        eprintln!("Ignoring invalid selection: {token}");
+                    }
+                }
+            }
+            chosen
+        };
+
+        if chosen.is_empty() {
+            eprintln!("Nothing selected. Aborted.");
+            return Ok(());
+        }
+
+        // Final confirmation
+        let sel_bytes: u64 = chosen.iter().map(|c| c.total_bytes).sum();
+        print!(
+            "\nDelete {} item(s), {}? [y/N] ",
+            chosen.len(),
+            bytesize::ByteSize::b(sel_bytes)
+        );
+        std::io::stdout().flush()?;
+        let mut confirm = String::new();
+        std::io::stdin().lock().read_line(&mut confirm)?;
+        if !confirm.trim().eq_ignore_ascii_case("y") {
             eprintln!("Aborted.");
             return Ok(());
         }
-    }
+        chosen
+    };
+
+    let count = selected.len();
+    let total_bytes: u64 = selected.iter().map(|c| c.total_bytes).sum();
 
     let sdir = state_dir()?;
     std::fs::create_dir_all(&sdir)?;
@@ -243,7 +333,7 @@ pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()
     let mut deleted = 0usize;
     let mut skipped = 0usize;
 
-    for entry in &session.candidates {
+    for entry in &selected {
         let canonical = std::fs::canonicalize(&entry.path)
             .unwrap_or_else(|_| entry.path.clone());
 
