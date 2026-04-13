@@ -133,6 +133,18 @@ fn network_mount_points() -> HashSet<std::path::PathBuf> {
     mounts
 }
 
+/// Returns true if `path` is a directory whose *contents* should be deleted
+/// rather than the directory itself. macOS protects these roots and will
+/// refuse to trash them even with full disk access.
+fn is_cache_root(path: &Path) -> bool {
+    let home = dirs::home_dir().unwrap_or_default();
+    let roots = [
+        home.join("Library/Caches"),
+        home.join("Library/Logs"),
+    ];
+    roots.iter().any(|r| path == r)
+}
+
 fn known_cache_dirs(home: &Path) -> Vec<PathBuf> {
     vec![
         home.join("Library/Caches"),
@@ -364,7 +376,50 @@ pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()
             continue;
         }
 
-        if force {
+        // For directories that macOS won't let us trash/delete as a whole
+        // (e.g. ~/Library/Caches itself), delete their children individually.
+        // We detect this by checking if the path is a known cache root.
+        let children_only = is_cache_root(&entry.path);
+
+        if children_only && entry.path.is_dir() {
+            let read_dir = match std::fs::read_dir(&entry.path) {
+                Ok(rd) => rd,
+                Err(e) => {
+                    tracing::warn!("cannot read dir {}: {}", entry.path.display(), e);
+                    log_action(&sdir, &entry.path, entry.total_bytes, "skip");
+                    skipped += 1;
+                    continue;
+                }
+            };
+            let mut child_ok = 0usize;
+            let mut child_fail = 0usize;
+            for child_entry in read_dir.flatten() {
+                let child = child_entry.path();
+                if force {
+                    let res = if child.is_dir() {
+                        std::fs::remove_dir_all(&child)
+                    } else {
+                        std::fs::remove_file(&child)
+                    };
+                    match res {
+                        Ok(()) => { log_action(&sdir, &child, 0, "delete"); child_ok += 1; }
+                        Err(e) => { tracing::warn!("delete failed for {}: {}", child.display(), e); child_fail += 1; }
+                    }
+                } else {
+                    use trash::macos::{DeleteMethod, TrashContextExtMacos};
+                    let mut ctx = trash::TrashContext::default();
+                    ctx.set_delete_method(DeleteMethod::NsFileManager);
+                    match ctx.delete(&child) {
+                        Ok(()) => { log_action(&sdir, &child, 0, "trash"); child_ok += 1; }
+                        Err(e) => { tracing::warn!("trash failed for {}: {}", child.display(), e); child_fail += 1; }
+                    }
+                }
+            }
+            if child_ok > 0 {
+                if force { deleted += 1; } else { trashed += 1; }
+            }
+            if child_fail > 0 { skipped += 1; }
+        } else if force {
             let res = if entry.path.is_dir() {
                 std::fs::remove_dir_all(&entry.path)
             } else {
@@ -382,9 +437,6 @@ pub fn run_apply(force: bool, _config: &Config, json: bool) -> anyhow::Result<()
                 }
             }
         } else {
-            // Use NsFileManager method: faster, no osascript serialization,
-            // and does not require Finder permissions. Trade-off: "Put Back"
-            // may not appear in Finder context menu on some macOS versions.
             use trash::macos::{DeleteMethod, TrashContextExtMacos};
             let mut ctx = trash::TrashContext::default();
             ctx.set_delete_method(DeleteMethod::NsFileManager);
